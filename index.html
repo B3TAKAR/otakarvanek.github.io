@@ -649,15 +649,30 @@
         if (udalosti.length === 0) {
           html += '<div class="app-no-hearings">Žádná jednání naplánována.</div>';
         } else {
-          html += '<table class="app-table"><thead><tr><th>Čas</th><th>Spisová značka</th></tr></thead><tbody>';
+          
           udalosti.forEach(u => {
             const caseNum = [u.cislo, u.druh, u.rocnik].filter(x => x != null).join(' ');
-            html += `<tr>
-              <td class="td-time">${u.cas || '—'}</td>
-              <td class="td-case">${caseNum || '—'}</td>
-            </tr>`;
+            const zruseno = u.jednaniZruseno;
+            const neverejne = u.neverejneJednani;
+            let badges = '';
+            if (zruseno) badges += '<span class="badge badge-red">Zrušeno</span>';
+            if (neverejne) badges += '<span class="badge badge-grey">Neveřejné</span>';
+            let rows = '';
+            rows += `<tr class="detail-row"><td class="detail-label">Spisová značka</td><td class="detail-val td-case">${caseNum || '—'}</td></tr>`;
+            if (u.resitel) rows += `<tr class="detail-row"><td class="detail-label">Soudce</td><td class="detail-val">${u.resitel}</td></tr>`;
+            if (u.druhJednani) rows += `<tr class="detail-row"><td class="detail-label">Druh jednání</td><td class="detail-val">${u.druhJednani}</td></tr>`;
+            if (u.predmetJednani) rows += `<tr class="detail-row"><td class="detail-label">Předmět</td><td class="detail-val">${u.predmetJednani}</td></tr>`;
+            if (u.jednaciSin) rows += `<tr class="detail-row"><td class="detail-label">Jednací síň</td><td class="detail-val">${u.jednaciSin}</td></tr>`;
+            if (u.vysledek) rows += `<tr class="detail-row"><td class="detail-label">Výsledek</td><td class="detail-val">${u.vysledek}</td></tr>`;
+            if (u.datumZapisuVysledku) rows += `<tr class="detail-row"><td class="detail-label">Datum zápisu</td><td class="detail-val">${u.datumZapisuVysledku}</td></tr>`;
+            html += `<div class="hearing-card ${zruseno ? 'hearing-zruseno' : ''}">
+              <div class="hearing-header">
+                <span class="hearing-time">${u.cas || '—'}</span>
+                <div class="hearing-badges">${badges}</div>
+              </div>
+              <table class="detail-table">${rows}</table>
+            </div>`;
           });
-          html += '</tbody></table>';
         }
         html += '</div>';
       }

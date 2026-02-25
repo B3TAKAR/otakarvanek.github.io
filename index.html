@@ -119,6 +119,26 @@
   .detail-val { color: var(--black); font-weight: 400; }
   .detail-val-case { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 800; }
 
+  .app-status { padding: 0 24px; }
+  .app-status-loading {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 0; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey);
+  }
+  .app-status-loading::before {
+    content: ''; display: inline-block; width: 14px; height: 14px;
+    border: 2px solid #eee; border-top-color: var(--blue);
+    border-radius: 50%; animation: hjspin 0.7s linear infinite;
+  }
+  .app-status-ready {
+    padding: 10px 0; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: #28c840;
+  }
+  .app-status-error {
+    padding: 10px 0; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #c00;
+  }
   .app-error { background: #fff5f5; border-left: 3px solid #e00; padding: 16px 20px; font-size: 13px; color: #c00; line-height: 1.6; }
 
   /* FOOTER */
@@ -185,6 +205,7 @@
       </div>
       <button class="app-btn" id="hj-btn" onclick="hjSearch()">Vyhledat →</button>
     </div>
+    <div class="app-status" id="hj-status"></div>
     <div class="app-results" id="hj-results">
       <div class="app-empty">Vyberte soud a klikněte na Vyhledat.</div>
     </div>
@@ -200,118 +221,61 @@
 <script>
 (function() {
   const API = 'https://hledac-proxy.otakar-84f.workers.dev';
+  let currentSins = [];
 
+  // Load courts on init
   async function hjInit() {
     try {
-      const [res1, res2] = await Promise.all([
+      const [r1, r2] = await Promise.all([
         fetch(`${API}/organizace/lov`),
         fetch(`${API}/organizace/podrizene/lov`)
       ]);
-      const krajske = await res1.json();
-      const okresni = await res2.json();
+      const krajske = await r1.json();
+      const okresni = await r2.json();
       const all = [...krajske, ...okresni].sort((a,b) => a.nazev.localeCompare(b.nazev, 'cs'));
-
       const sel = document.getElementById('hj-soud');
       sel.innerHTML = '<option value="">— Vyberte soud —</option>';
-
       const hlavni = all.filter(c => c.kod.startsWith('KS') || c.kod.startsWith('VS') || (c.kod.startsWith('MS') && !c.kod.startsWith('MSS')));
       const ostatni = all.filter(c => !hlavni.includes(c));
-
-      const grp1 = document.createElement('optgroup');
-      grp1.label = 'Krajské a vrchní soudy';
-      hlavni.forEach(c => { const o = document.createElement('option'); o.value = c.kod; o.textContent = c.nazev; grp1.appendChild(o); });
-
-      const grp2 = document.createElement('optgroup');
-      grp2.label = 'Okresní a obvodní soudy';
-      ostatni.forEach(c => { const o = document.createElement('option'); o.value = c.kod; o.textContent = c.nazev; grp2.appendChild(o); });
-
-      sel.appendChild(grp1);
-      sel.appendChild(grp2);
+      const g1 = document.createElement('optgroup'); g1.label = 'Krajské a vrchní soudy';
+      hlavni.forEach(c => { const o = document.createElement('option'); o.value = c.kod; o.textContent = c.nazev; g1.appendChild(o); });
+      const g2 = document.createElement('optgroup'); g2.label = 'Okresní a obvodní soudy';
+      ostatni.forEach(c => { const o = document.createElement('option'); o.value = c.kod; o.textContent = c.nazev; g2.appendChild(o); });
+      sel.appendChild(g1); sel.appendChild(g2);
     } catch(e) {
-      document.getElementById('hj-soud').innerHTML = '<option value="">— Chyba načítání soudů —</option>';
+      document.getElementById('hj-soud').innerHTML = '<option value="">— Chyba načítání —</option>';
     }
   }
 
-  // Store all sins for the selected court
-  let currentSins = [];
-
+  // Load sins when court is selected
   window.hjOnCourtChange = async function() {
     const courtId = document.getElementById('hj-soud').value;
+    const statusEl = document.getElementById('hj-status');
+    const btn = document.getElementById('hj-btn');
     currentSins = [];
-    if (!courtId) return;
+    if (!courtId) { statusEl.innerHTML = ''; return; }
+
+    statusEl.innerHTML = '<div class="app-status-loading">Načítám jednací síně...</div>';
+    btn.disabled = true;
+
     try {
       const res = await fetch(`${API}/organizace/lovkod/jednaci-sin?idOrganizace=${courtId}`);
       const data = await res.json();
-      // Deduplicate by room number, keep cleaner label
       const roomMap = new Map();
       data.forEach(s => {
         const normalized = s.kod.replace(/\s+/g, ' ').trim();
         const roomNum = normalized.match(/^(\d+)/)?.[1] || normalized;
         const existing = roomMap.get(roomNum);
-        if (!existing || normalized.length > existing.length) {
-          roomMap.set(roomNum, normalized);
-        }
+        if (!existing || normalized.length > existing.length) roomMap.set(roomNum, normalized);
       });
       currentSins = [...roomMap.values()];
-      console.log('Loaded', currentSins.length, 'sins for', courtId);
+      statusEl.innerHTML = `<div class="app-status-ready">✓ Načteno ${currentSins.length} jednacích síní — soud je připraven k vyhledávání</div>`;
+      setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
     } catch(e) {
       currentSins = [];
-    }
-  };
-
-      function detectGroup(kod) {
-        // 1. Explicit "pob. XYZ" or "pobočka XYZ"
-        const pobMatch = kod.match(/pob\.?\s+([\w\s\.]+)/i);
-        if (pobMatch) return 'Pobočka ' + pobMatch[1].trim();
-
-        // 2. Known abbreviations at start of room number (e.g. "107PCE", "108PCE")
-        for (const [abbr, name] of Object.entries(ZKRATKY)) {
-          const re = new RegExp('(^|\\d)' + abbr + '(\\s|-|$)', 'i');
-          if (re.test(kod)) return name;
-        }
-
-        // 3. Budova A/B
-        const budovaMatch = kod.match(/budova\s+([A-Z])/i);
-        if (budovaMatch) return 'Budova ' + budovaMatch[1].toUpperCase();
-
-        // 4. Default = main court location
-        return 'Hlavní budova';
-      }
-
-      // Group rooms
-      const groups = {};
-      sorted.forEach(([num, kod]) => {
-        const group = detectGroup(kod);
-        if (!groups[group]) groups[group] = [];
-        groups[group].push(kod);
-      });
-
-      sinSel.innerHTML = '<option value="">— Všechny síně —</option>';
-
-      // Sort: Hlavní budova / Budova X first, then branches
-      const groupOrder = Object.keys(groups).sort((a, b) => {
-        if (a === 'Hlavní budova') return -1;
-        if (b === 'Hlavní budova') return 1;
-        if (a.startsWith('Budova') && !b.startsWith('Budova')) return -1;
-        if (!a.startsWith('Budova') && b.startsWith('Budova')) return 1;
-        return a.localeCompare(b, 'cs');
-      });
-
-      groupOrder.forEach(groupName => {
-        const grp = document.createElement('optgroup');
-        grp.label = groupName;
-        groups[groupName].forEach(kod => {
-          const o = document.createElement('option');
-          o.value = kod; o.textContent = kod;
-          grp.appendChild(o);
-        });
-        sinSel.appendChild(grp);
-      });
-
-    } catch(e) {
-      sinSel.innerHTML = '<option value="">— Chyba načítání síní —</option>';
+      statusEl.innerHTML = '<div class="app-status-error">Chyba načítání síní</div>';
     } finally {
-      sinSel.disabled = false;
+      btn.disabled = false;
     }
   };
 
@@ -319,8 +283,7 @@
     const dates = [];
     const today = new Date();
     for (let i = 0; i < parseInt(days); i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
+      const d = new Date(today); d.setDate(today.getDate() + i);
       dates.push(d.toISOString().split('T')[0]);
     }
     return dates;
@@ -336,27 +299,24 @@
     const courtId = document.getElementById('hj-soud').value;
     const days = document.getElementById('hj-days').value;
     const resultsEl = document.getElementById('hj-results');
+    const statusEl = document.getElementById('hj-status');
     const btn = document.getElementById('hj-btn');
 
-    if (!courtId) {
-      resultsEl.innerHTML = '<div class="app-error">Prosím vyberte soud.</div>';
-      return;
-    }
+    if (!courtId) { resultsEl.innerHTML = '<div class="app-error">Prosím vyberte soud.</div>'; return; }
+    if (currentSins.length === 0) { resultsEl.innerHTML = '<div class="app-error">Počkejte prosím na načtení síní.</div>'; return; }
 
     btn.disabled = true;
     btn.textContent = 'Načítám...';
-    resultsEl.innerHTML = '<div class="app-spinner">Načítám jednání</div>';
+    resultsEl.innerHTML = '<div class="app-spinner">Načítám jednání ze všech síní</div>';
 
     const dates = getDates(days);
 
     try {
       // Fetch all sins x all dates in parallel
-      const sins = currentSins.length > 0 ? currentSins : [null];
       const fetches = [];
       for (const date of dates) {
-        for (const sin of sins) {
-          const payload = { druhOrganizace: courtId, datumJednani: date, typHledani: 'JEDNANI' };
-          if (sin) payload.jednaciSin = sin;
+        for (const sin of currentSins) {
+          const payload = { druhOrganizace: courtId, datumJednani: date, typHledani: 'JEDNANI', jednaciSin: sin };
           fetches.push(
             fetch(`${API}/jednani/vyhledej`, {
               method: 'POST',
@@ -374,69 +334,50 @@
       for (const date of dates) byDate[date] = [];
       rawResults.forEach(({ date, data }) => {
         if (!data) return;
-        const udalosti = Array.isArray(data)
-          ? data.flatMap(d => d.udalosti || [])
-          : (data.udalosti || []);
+        const udalosti = Array.isArray(data) ? data.flatMap(d => d.udalosti || []) : (data.udalosti || []);
         byDate[date].push(...udalosti);
       });
 
-      // Convert to allResults format
-      const allResults = dates.map(date => ({ date, data: { udalosti: byDate[date] } }));
       let totalHearings = 0;
       let html = '';
 
-      for (const { date, data } of allResults) {
-        if (!data) continue;
-        const udalosti = Array.isArray(data)
-          ? data.flatMap(d => d.udalosti || [])
-          : (data.udalosti || []);
-
+      for (const date of dates) {
+        const udalosti = byDate[date];
         udalosti.sort((a,b) => (a.cas || '').localeCompare(b.cas || ''));
 
-        // Deduplicate hearings by case number + time
-        const seenHearings = new Set();
-        const uniqueUdalosti = udalosti.filter(u => {
+        // Deduplicate by time + case
+        const seen = new Set();
+        const unique = udalosti.filter(u => {
           const key = `${u.cas}-${u.cislo}-${u.druh}-${u.rocnik}`;
-          if (seenHearings.has(key)) return false;
-          seenHearings.add(key);
-          return true;
+          if (seen.has(key)) return false;
+          seen.add(key); return true;
         });
-        const udalostiDeduped = uniqueUdalosti;
-        totalHearings += udalostiDeduped.length;
+
+        totalHearings += unique.length;
 
         html += `<div class="app-day-block">
           <div class="app-day-title">
             <span>${fmtDate(date)}</span>
-            <span class="app-day-count">${udalosti.length} jednání</span>
+            <span class="app-day-count">${unique.length} jednání</span>
           </div>`;
 
-        if (udalostiDeduped.length === 0) {
+        if (unique.length === 0) {
           html += '<div class="app-no-hearings">Žádná jednání naplánována.</div>';
         } else {
-          udalostiDeduped.forEach(u => {
+          unique.forEach(u => {
             const caseNum = [u.cislo, u.druh, u.rocnik].filter(x => x != null).join(' ');
             const zruseno = u.jednaniZruseno;
             const neverejne = u.neverejneJednani;
-
-            // Badges
             let badges = '';
             if (zruseno) badges += '<span class="badge badge-red">Zrušeno</span>';
-            if (neverejne) {
-              badges += '<span class="badge badge-grey">Neveřejné</span>';
-            } else {
-              badges += '<span class="badge badge-green">Veřejné</span>';
-            }
-
-            // Detail rows
-            let rows = '';
-            rows += `<tr class="detail-row"><td class="detail-label">Spisová značka</td><td class="detail-val detail-val-case">${caseNum || '—'}</td></tr>`;
+            badges += neverejne ? '<span class="badge badge-grey">Neveřejné</span>' : '<span class="badge badge-green">Veřejné</span>';
+            let rows = `<tr class="detail-row"><td class="detail-label">Spisová značka</td><td class="detail-val detail-val-case">${caseNum || '—'}</td></tr>`;
             if (u.resitel) rows += `<tr class="detail-row"><td class="detail-label">Soudce</td><td class="detail-val">${u.resitel}</td></tr>`;
             if (u.druhJednani) rows += `<tr class="detail-row"><td class="detail-label">Druh jednání</td><td class="detail-val">${u.druhJednani}</td></tr>`;
             if (u.predmetJednani) rows += `<tr class="detail-row"><td class="detail-label">Předmět</td><td class="detail-val">${u.predmetJednani}</td></tr>`;
             if (u.jednaciSin) rows += `<tr class="detail-row"><td class="detail-label">Jednací síň</td><td class="detail-val">${u.jednaciSin}</td></tr>`;
             if (u.vysledek) rows += `<tr class="detail-row"><td class="detail-label">Výsledek</td><td class="detail-val">${u.vysledek}</td></tr>`;
             if (u.datumZapisuVysledku) rows += `<tr class="detail-row"><td class="detail-label">Datum zápisu</td><td class="detail-val">${u.datumZapisuVysledku}</td></tr>`;
-
             html += `<div class="hearing-card ${zruseno ? 'hearing-zruseno' : ''}">
               <div class="hearing-header">
                 <span class="hearing-time">${u.cas || '—'}</span>
@@ -451,7 +392,7 @@
 
       const summary = `<div class="app-summary">Celkem ${totalHearings} jednání za ${days} dní</div>`;
       resultsEl.innerHTML = totalHearings === 0
-        ? '<div class="app-empty">Žádná jednání nenalezena pro vybraný soud a období.</div>'
+        ? '<div class="app-empty">Žádná jednání nenalezena.</div>'
         : summary + html;
 
     } catch(e) {

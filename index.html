@@ -227,6 +227,7 @@
 (function() {
   const API = 'https://hledac-proxy.otakar-84f.workers.dev';
   let currentSins = [];
+  let currentBranchMap = {};
 
   // Load courts on init
   async function hjInit() {
@@ -253,12 +254,48 @@
   }
 
   // Load sins when court is selected
+  // Branch detection rules per court
+  const BRANCH_RULES = {
+    'KSSCEUL': { // KS Ústí nad Labem
+      detect: (kod) => /pob\..*liberec/i.test(kod) ? 'Pobočka Liberec' : 'Ústí nad Labem',
+      branches: ['Ústí nad Labem', 'Pobočka Liberec']
+    },
+    'KSSEMOS': { // KS Ostrava
+      detect: (kod) => /budova\s+[AB]/i.test(kod) ? 'Ostrava' : 'Pobočka Olomouc',
+      branches: ['Ostrava', 'Pobočka Olomouc']
+    },
+    'KSJICCB': { // KS České Budějovice
+      detect: (kod) => /pob\..*tábor|tábor/i.test(kod) ? 'Pobočka Tábor' : 'České Budějovice',
+      branches: ['České Budějovice', 'Pobočka Tábor']
+    },
+    'KSVYCHK': { // KS Hradec Králové
+      detect: (kod) => /PCE/i.test(kod) ? 'Pobočka Pardubice' : 'Hradec Králové',
+      branches: ['Hradec Králové', 'Pobočka Pardubice']
+    },
+    'KSJIMBM': { // KS Brno
+      detect: (kod) => {
+        if (/jihlava/i.test(kod)) return 'Pobočka Jihlava';
+        if (/zlín/i.test(kod)) return 'Pobočka Zlín';
+        return 'Brno';
+      },
+      branches: ['Brno', 'Pobočka Jihlava', 'Pobočka Zlín']
+    },
+  };
+
   window.hjOnCourtChange = async function() {
     const courtId = document.getElementById('hj-soud').value;
     const statusEl = document.getElementById('hj-status');
     const btn = document.getElementById('hj-btn');
+    const pobockaSel = document.getElementById('hj-pobocka');
     currentSins = [];
-    if (!courtId) { statusEl.innerHTML = ''; return; }
+    currentBranchMap = {};
+
+    if (!courtId) {
+      statusEl.innerHTML = '';
+      pobockaSel.innerHTML = '<option value="">— Celý soud —</option>';
+      pobockaSel.disabled = true;
+      return;
+    }
 
     statusEl.innerHTML = '<div class="app-status-loading">Načítám jednací síně...</div>';
     btn.disabled = true;
@@ -266,6 +303,8 @@
     try {
       const res = await fetch(`${API}/organizace/lovkod/jednaci-sin?idOrganizace=${courtId}`);
       const data = await res.json();
+
+      // Deduplicate
       const roomMap = new Map();
       data.forEach(s => {
         const normalized = s.kod.replace(/\s+/g, ' ').trim();
@@ -274,7 +313,31 @@
         if (!existing || normalized.length > existing.length) roomMap.set(roomNum, normalized);
       });
       currentSins = [...roomMap.values()];
-      statusEl.innerHTML = `<div class="app-status-ready">✓ Načteno ${currentSins.length} jednacích síní — soud je připraven k vyhledávání</div>`;
+
+      // Build branch map if court has branches
+      const rule = BRANCH_RULES[courtId];
+      pobockaSel.innerHTML = '<option value="">— Celý soud —</option>';
+      if (rule) {
+        // Map each sin to its branch
+        currentSins.forEach(sin => {
+          currentBranchMap[sin] = rule.detect(sin);
+        });
+        // Populate pobocka dropdown
+        rule.branches.forEach(branch => {
+          const count = Object.values(currentBranchMap).filter(b => b === branch).length;
+          if (count > 0) {
+            const o = document.createElement('option');
+            o.value = branch;
+            o.textContent = branch;
+            pobockaSel.appendChild(o);
+          }
+        });
+        pobockaSel.disabled = false;
+      } else {
+        pobockaSel.disabled = true;
+      }
+
+      statusEl.innerHTML = `<div class="app-status-ready">✓ Načteno ${currentSins.length} jednacích síní</div>`;
       setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
     } catch(e) {
       currentSins = [];
@@ -317,10 +380,17 @@
     const dates = getDates(days);
 
     try {
+      // Filter sins by selected branch
+      const selectedBranch = document.getElementById('hj-pobocka').value;
+      let filteredSins = currentSins.length > 0 ? currentSins : [null];
+      if (selectedBranch && Object.keys(currentBranchMap).length > 0) {
+        filteredSins = filteredSins.filter(s => currentBranchMap[s] === selectedBranch);
+      }
+
       // Fetch all sins x all dates in parallel
       const fetches = [];
       for (const date of dates) {
-        for (const sin of currentSins) {
+        for (const sin of filteredSins) {
           const payload = { druhOrganizace: courtId, datumJednani: date, typHledani: 'JEDNANI', jednaciSin: sin };
           fetches.push(
             fetch(`${API}/jednani/vyhledej`, {

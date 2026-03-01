@@ -144,6 +144,26 @@
     padding: 10px 0; font-size: 11px; font-weight: 500;
     letter-spacing: 0.12em; text-transform: uppercase; color: #c00;
   }
+  .court-search-wrap { position: relative; }
+  .app-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; background: #fafafa; font-size: 13px; font-family: 'Barlow', sans-serif; color: var(--black); transition: border-color 0.2s; }
+  .app-input:focus { outline: none; border-color: var(--blue); }
+  .app-input::placeholder { color: #bbb; }
+  .court-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: white; border: 1px solid #ddd; border-top: none;
+    max-height: 260px; overflow-y: auto;
+    z-index: 100; display: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+  .court-dropdown.open { display: block; }
+  .court-option {
+    padding: 10px 12px; font-size: 13px; cursor: pointer;
+    border-bottom: 1px solid #f5f5f5; transition: background 0.1s;
+    font-family: 'Barlow', sans-serif;
+  }
+  .court-option:last-child { border-bottom: none; }
+  .court-option:hover, .court-option.active { background: #f0f4ff; color: var(--blue); }
+  .court-option-group { padding: 6px 12px; font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; background: #fafafa; border-bottom: 1px solid #f0f0f0; cursor: default; }
   .app-error { background: #fff5f5; border-left: 3px solid #e00; padding: 16px 20px; font-size: 13px; color: #c00; line-height: 1.6; }
 
   /* FOOTER */
@@ -187,12 +207,14 @@
     <div class="app-form">
       <div class="app-field">
         <label class="app-label">Soud</label>
-        <select class="app-select" id="hj-soud" onchange="hjOnCourtChange()">
-          <option value="">— Načítám soudy... —</option>
-        </select>
+        <div class="court-search-wrap">
+          <input type="text" class="app-input" id="hj-soud-input" placeholder="Začněte psát název soudu..." autocomplete="off" oninput="hjFilterCourts()" onfocus="hjShowList()" onblur="hjHideList()">
+          <input type="hidden" id="hj-soud">
+          <div class="court-dropdown" id="hj-court-list"></div>
+        </div>
       </div>
       <div class="app-field">
-        <label class="app-label">Pobočka <span style="font-size:9px;color:#bbb;letter-spacing:0">(brzy)</span></label>
+        <label class="app-label">Pobočka</label>
         <select class="app-select" id="hj-pobocka" disabled>
           <option value="">— Celý soud —</option>
         </select>
@@ -229,6 +251,9 @@
   let currentSins = [];
   let currentBranchMap = {};
 
+  let allCourts = [];
+  let hideTimeout = null;
+
   // Load courts on init
   async function hjInit() {
     try {
@@ -238,20 +263,70 @@
       ]);
       const krajske = await r1.json();
       const okresni = await r2.json();
-      const all = [...krajske, ...okresni].sort((a,b) => a.nazev.localeCompare(b.nazev, 'cs'));
-      const sel = document.getElementById('hj-soud');
-      sel.innerHTML = '<option value="">— Vyberte soud —</option>';
-      const hlavni = all.filter(c => c.kod.startsWith('KS') || c.kod.startsWith('VS') || (c.kod.startsWith('MS') && !c.kod.startsWith('MSS')));
-      const ostatni = all.filter(c => !hlavni.includes(c));
-      const g1 = document.createElement('optgroup'); g1.label = 'Krajské a vrchní soudy';
-      hlavni.forEach(c => { const o = document.createElement('option'); o.value = c.kod; o.textContent = c.nazev; g1.appendChild(o); });
-      const g2 = document.createElement('optgroup'); g2.label = 'Okresní a obvodní soudy';
-      ostatni.forEach(c => { const o = document.createElement('option'); o.value = c.kod; o.textContent = c.nazev; g2.appendChild(o); });
-      sel.appendChild(g1); sel.appendChild(g2);
+      const hlavni = krajske.sort((a,b) => a.nazev.localeCompare(b.nazev, 'cs'));
+      const ostatni = okresni.sort((a,b) => a.nazev.localeCompare(b.nazev, 'cs'));
+      allCourts = [
+        ...hlavni.map(c => ({ ...c, group: 'Krajské a vrchní soudy' })),
+        ...ostatni.map(c => ({ ...c, group: 'Okresní a obvodní soudy' }))
+      ];
+      document.getElementById('hj-soud-input').placeholder = 'Začněte psát název soudu...';
     } catch(e) {
-      document.getElementById('hj-soud').innerHTML = '<option value="">— Chyba načítání —</option>';
+      document.getElementById('hj-soud-input').placeholder = 'Chyba načítání soudů';
     }
   }
+
+  function renderCourtList(filtered) {
+    const list = document.getElementById('hj-court-list');
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="court-option" style="color:#bbb">Žádný soud nenalezen</div>';
+      return;
+    }
+    let html = '';
+    let lastGroup = null;
+    filtered.forEach(c => {
+      if (c.group !== lastGroup) {
+        html += `<div class="court-option-group">${c.group}</div>`;
+        lastGroup = c.group;
+      }
+      html += `<div class="court-option" data-kod="${c.kod}" data-nazev="${c.nazev}" onmousedown="hjSelectCourt('${c.kod}','${c.nazev.replace(/'/g, "\\'")}')">${c.nazev}</div>`;
+    });
+    list.innerHTML = html;
+  }
+
+  window.hjFilterCourts = function() {
+    const q = document.getElementById('hj-soud-input').value.toLowerCase().trim();
+    // Clear previous selection
+    document.getElementById('hj-soud').value = '';
+    const list = document.getElementById('hj-court-list');
+    list.classList.add('open');
+    if (q.length === 0) {
+      renderCourtList(allCourts);
+      return;
+    }
+    const filtered = allCourts.filter(c => c.nazev.toLowerCase().includes(q));
+    renderCourtList(filtered);
+  };
+
+  window.hjShowList = function() {
+    clearTimeout(hideTimeout);
+    const list = document.getElementById('hj-court-list');
+    const q = document.getElementById('hj-soud-input').value.toLowerCase().trim();
+    renderCourtList(q ? allCourts.filter(c => c.nazev.toLowerCase().includes(q)) : allCourts);
+    list.classList.add('open');
+  };
+
+  window.hjHideList = function() {
+    hideTimeout = setTimeout(() => {
+      document.getElementById('hj-court-list').classList.remove('open');
+    }, 200);
+  };
+
+  window.hjSelectCourt = function(kod, nazev) {
+    document.getElementById('hj-soud-input').value = nazev;
+    document.getElementById('hj-soud').value = kod;
+    document.getElementById('hj-court-list').classList.remove('open');
+    hjOnCourtChange();
+  };
 
   // Load sins when court is selected
   // Branch detection rules per court

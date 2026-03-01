@@ -120,6 +120,9 @@
   .detail-label { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey); width: 160px; }
   .detail-val { color: var(--black); font-weight: 400; }
   .detail-val-case { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 800; }
+  .case-link { color: var(--blue); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: opacity 0.2s; }
+  .case-link:hover { opacity: 0.7; }
+  .case-link-arrow { font-size: 13px; }
 
   .app-status { padding: 0 24px; }
   .app-status-loading {
@@ -375,7 +378,13 @@
             let badges = '';
             if (zruseno) badges += '<span class="badge badge-red">Zrušeno</span>';
             badges += neverejne ? '<span class="badge badge-grey">Neveřejné</span>' : '<span class="badge badge-green">Veřejné</span>';
-            let rows = `<tr class="detail-row"><td class="detail-label">Spisová značka</td><td class="detail-val detail-val-case">${caseNum || '—'}</td></tr>`;
+            const infoSoudUrl = (u.cislo && u.druh && u.bcVec && u.rocnik)
+              ? `https://infosoud.gov.cz/InfoSoud/detail-rizeni?typOrganizace=VSECHNY_KRAJE&druhOrganizace=${courtId}&cisloSenatu=${u.cislo}&druhVeci=${u.druh}&bcVec=${u.bcVec}&rocnik=${u.rocnik}`
+              : null;
+            const caseLink = infoSoudUrl
+              ? `<a href="${infoSoudUrl}" target="_blank" class="case-link">${caseNum} <span class="case-link-arrow">↗</span></a>`
+              : (caseNum || '—');
+            let rows = `<tr class="detail-row"><td class="detail-label">Spisová značka</td><td class="detail-val detail-val-case">${caseLink}</td></tr>`;
             if (u.resitel) rows += `<tr class="detail-row"><td class="detail-label">Soudce</td><td class="detail-val">${u.resitel}</td></tr>`;
             if (u.druhJednani) rows += `<tr class="detail-row"><td class="detail-label">Druh jednání</td><td class="detail-val">${u.druhJednani}</td></tr>`;
             if (u.predmetJednani) rows += `<tr class="detail-row"><td class="detail-label">Předmět</td><td class="detail-val">${u.predmetJednani}</td></tr>`;

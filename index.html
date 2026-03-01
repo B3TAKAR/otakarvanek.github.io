@@ -183,7 +183,7 @@
 
 <nav>
   <div class="nav-logo">Hledač <span>Jednání</span>®</div>
-  <a href="https://b3takar.github.io" class="nav-back">← Portfolio</a>
+  <div style="display:flex;gap:24px;align-items:center"><a href="#rychlosoud" style="font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey);transition:color 0.2s" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--grey)'">Rychlosoud</a><a href="https://b3takar.github.io" class="nav-back">← Portfolio</a></div>
 </nav>
 
 <!-- HERO -->
@@ -238,6 +238,902 @@
     </div>
   </div>
 </div>
+
+<!-- RYCHLOSOUD GAME -->
+<section class="qs-section" id="rychlosoud">
+  <div class="qs-wrap">
+
+    <!-- HEADER -->
+    <div class="qs-header">
+      <div class="qs-header-left">
+        <p class="qs-eyebrow">Interaktivní sekce</p>
+        <h2 class="qs-title">RYCHLO<br>SOUD<span class="qs-reg">®</span></h2>
+        <p class="qs-subtitle">Trestní kolegium — Zvláštní senát</p>
+      </div>
+      <div class="qs-header-right">
+        <div class="qs-emblem">
+          <div class="qs-emblem-inner">
+            <span class="qs-emblem-icon">⚖</span>
+          </div>
+          <div class="qs-emblem-ring"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME BOX -->
+    <div class="qs-box" id="qs-box">
+
+      <!-- START SCREEN -->
+      <div class="qs-screen" id="qs-start">
+        <div class="qs-screen-content">
+          <div class="qs-case-number">VĚCNÝ SPIS / REF. Č. 2025-QS-001</div>
+          <h3 class="qs-screen-title">Jste jmenováni<br>soudcem senátu</h3>
+          <p class="qs-screen-body">Rozhodněte 15 případů: je jednání trestným činem, nebo pouhým přestupkem? Spravedlnost nečeká.</p>
+          <div class="qs-speed-select">
+            <p class="qs-speed-label">Časový limit na případ</p>
+            <div class="qs-speed-btns">
+              <button class="qs-speed-btn" data-time="5" onclick="qsSetSpeed(5, this)">5s<span>Rychlý</span></button>
+              <button class="qs-speed-btn active" data-time="8" onclick="qsSetSpeed(8, this)">8s<span>Normální</span></button>
+              <button class="qs-speed-btn" data-time="15" onclick="qsSetSpeed(15, this)">15s<span>Pomalý</span></button>
+              <button class="qs-speed-btn" data-time="30" onclick="qsSetSpeed(30, this)">30s<span>Studijní</span></button>
+            </div>
+          </div>
+          <button class="qs-start-btn" onclick="qsStart()">
+            <span class="qs-start-btn-icon">⚖</span>
+            Zasednout k soudu
+          </button>
+          <p class="qs-controls-hint">← Trestný čin &nbsp;|&nbsp; Není trestný čin →</p>
+        </div>
+      </div>
+
+      <!-- GAME SCREEN -->
+      <div class="qs-screen hidden" id="qs-game">
+        <!-- Top bar -->
+        <div class="qs-topbar">
+          <div class="qs-topbar-left">
+            <span class="qs-topbar-label">Případ</span>
+            <span class="qs-topbar-val" id="qs-qnum">1 / 15</span>
+          </div>
+          <div class="qs-topbar-center">
+            <div class="qs-timer-ring">
+              <svg viewBox="0 0 44 44" class="qs-ring-svg">
+                <circle cx="22" cy="22" r="18" class="qs-ring-bg"/>
+                <circle cx="22" cy="22" r="18" class="qs-ring-fg" id="qs-ring-fg"/>
+              </svg>
+              <span class="qs-ring-num" id="qs-timer-num">8</span>
+            </div>
+          </div>
+          <div class="qs-topbar-right">
+            <span class="qs-topbar-label">Skóre</span>
+            <span class="qs-topbar-val" id="qs-score">0</span>
+          </div>
+        </div>
+
+        <!-- Progress dots -->
+        <div class="qs-dots" id="qs-dots"></div>
+
+        <!-- Case file -->
+        <div class="qs-case" id="qs-case">
+          <div class="qs-case-meta">
+            <span class="qs-case-tag" id="qs-cat">TRESTNÍ VĚC</span>
+            <span class="qs-case-ref" id="qs-ref">§ —</span>
+          </div>
+          <p class="qs-case-text" id="qs-text"></p>
+          <p class="qs-case-detail" id="qs-detail"></p>
+        </div>
+
+        <!-- Verdict buttons -->
+        <div class="qs-verdicts">
+          <button class="qs-verdict qs-verdict-yes" onclick="qsAnswer(true)" id="qs-btn-yes">
+            <span class="qs-verdict-key">←</span>
+            <span class="qs-verdict-label">Trestný čin</span>
+            <span class="qs-verdict-sub">§ TZ</span>
+          </button>
+          <div class="qs-verdict-divider">nebo</div>
+          <button class="qs-verdict qs-verdict-no" onclick="qsAnswer(false)" id="qs-btn-no">
+            <span class="qs-verdict-key">→</span>
+            <span class="qs-verdict-label">Není trestný čin</span>
+            <span class="qs-verdict-sub">Přestupek / Civilní</span>
+          </button>
+        </div>
+
+        <!-- Explanation bar (shown after answer) -->
+        <div class="qs-explanation hidden" id="qs-explanation">
+          <span class="qs-expl-icon" id="qs-expl-icon"></span>
+          <p class="qs-expl-text" id="qs-expl-text"></p>
+        </div>
+      </div>
+
+      <!-- END SCREEN -->
+      <div class="qs-screen hidden" id="qs-end">
+        <div class="qs-screen-content">
+          <div class="qs-case-number">ROZSUDEK / VÝSLEDKY ŘÍZENÍ</div>
+          <div class="qs-end-emblem" id="qs-end-icon">🏛</div>
+          <h3 class="qs-screen-title" id="qs-end-title">VÝSLEDEK</h3>
+          <div class="qs-end-stats">
+            <div class="qs-end-stat">
+              <div class="qs-end-num" id="qs-end-score">0</div>
+              <div class="qs-end-label">Bodů</div>
+            </div>
+            <div class="qs-end-stat correct">
+              <div class="qs-end-num" id="qs-end-correct">0</div>
+              <div class="qs-end-label">Správně</div>
+            </div>
+            <div class="qs-end-stat wrong">
+              <div class="qs-end-num" id="qs-end-wrong">0</div>
+              <div class="qs-end-label">Chybně</div>
+            </div>
+          </div>
+          <p class="qs-screen-body" id="qs-end-verdict"></p>
+          <button class="qs-start-btn" onclick="qsRestart()">↺ Nové řízení</button>
+        </div>
+      </div>
+
+    </div><!-- /qs-box -->
+  </div>
+</section>
+
+<style>
+/* ===== RYCHLOSOUD STYLES ===== */
+.qs-section {
+  background: var(--black);
+  padding: 100px 40px;
+  border-top: 1px solid #1a1a1a;
+}
+.qs-wrap { max-width: 1100px; margin: 0 auto; }
+
+/* Header */
+.qs-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 60px;
+}
+.qs-eyebrow {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--blue); margin-bottom: 16px;
+}
+.qs-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(60px, 10vw, 130px);
+  font-weight: 900; text-transform: uppercase;
+  line-height: 0.85; letter-spacing: -0.02em;
+  color: var(--white); position: relative;
+}
+.qs-reg {
+  font-size: 0.3em; vertical-align: super;
+  border: 0.1em solid var(--white); border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 0.6em; height: 0.6em; margin-left: 4px;
+}
+.qs-subtitle {
+  font-size: 11px; font-weight: 400; letter-spacing: 0.18em;
+  text-transform: uppercase; color: #444; margin-top: 12px;
+}
+.qs-emblem {
+  position: relative; width: 100px; height: 100px;
+  display: flex; align-items: center; justify-content: center;
+}
+.qs-emblem-inner {
+  width: 72px; height: 72px;
+  border: 2px solid var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+}
+.qs-emblem-icon { font-size: 32px; }
+.qs-emblem-ring {
+  position: absolute; inset: 0;
+  border: 1px solid rgba(20,0,255,0.3);
+  border-radius: 50%;
+  animation: qsRotate 20s linear infinite;
+}
+@keyframes qsRotate { to { transform: rotate(360deg); } }
+
+/* Game box */
+.qs-box {
+  border: 1px solid #222;
+  background: #0d0d0d;
+  min-height: 500px;
+  position: relative;
+  overflow: hidden;
+}
+.qs-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+}
+
+/* Screens */
+.qs-screen { padding: 48px; animation: qsFadeIn 0.3s ease; }
+.qs-screen.hidden { display: none; }
+@keyframes qsFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.qs-screen-content { max-width: 560px; margin: 0 auto; text-align: center; }
+.qs-case-number {
+  font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: #333; margin-bottom: 24px; font-weight: 700;
+}
+.qs-screen-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(32px, 5vw, 52px); font-weight: 900;
+  text-transform: uppercase; color: var(--white);
+  line-height: 0.9; margin-bottom: 20px; letter-spacing: -0.01em;
+}
+.qs-screen-body {
+  font-size: 14px; font-weight: 300; color: #666;
+  line-height: 1.7; margin-bottom: 32px;
+}
+
+/* Speed selector */
+.qs-speed-select { margin-bottom: 32px; }
+.qs-speed-label {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: #444; margin-bottom: 12px;
+}
+.qs-speed-btns { display: flex; gap: 8px; justify-content: center; }
+.qs-speed-btn {
+  padding: 10px 16px; border: 1px solid #222; background: transparent;
+  color: #555; cursor: pointer; transition: all 0.2s;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px; font-weight: 900; letter-spacing: 0.05em;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.qs-speed-btn span { font-size: 9px; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; font-family: 'Barlow', sans-serif; }
+.qs-speed-btn:hover { border-color: #444; color: #888; }
+.qs-speed-btn.active { border-color: var(--blue); color: var(--white); background: rgba(20,0,255,0.1); }
+
+/* Start button */
+.qs-start-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 32px; background: var(--blue); color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.15em;
+  text-transform: uppercase; border: none; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 16px;
+}
+.qs-start-btn:hover { background: #0500cc; }
+.qs-start-btn-icon { font-size: 18px; }
+.qs-controls-hint {
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #333;
+}
+
+/* Top bar */
+.qs-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 32px; border-bottom: 1px solid #1a1a1a;
+}
+.qs-topbar-label {
+  font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #333; display: block; margin-bottom: 2px;
+}
+.qs-topbar-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px; font-weight: 900; color: var(--white);
+}
+.qs-topbar-right { text-align: right; }
+
+/* Timer ring */
+.qs-timer-ring { position: relative; width: 44px; height: 44px; }
+.qs-ring-svg { width: 44px; height: 44px; transform: rotate(-90deg); }
+.qs-ring-bg { fill: none; stroke: #1a1a1a; stroke-width: 3; }
+.qs-ring-fg {
+  fill: none; stroke: var(--blue); stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 113;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.1s linear, stroke 0.3s;
+}
+.qs-ring-num {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 900; color: var(--white);
+}
+
+/* Progress dots */
+.qs-dots {
+  display: flex; gap: 4px; padding: 14px 32px;
+  border-bottom: 1px solid #1a1a1a;
+}
+.qs-dot {
+  flex: 1; height: 3px; background: #1a1a1a; transition: background 0.3s;
+}
+.qs-dot.correct { background: #1a6b35; }
+.qs-dot.wrong { background: #6b1a1a; }
+.qs-dot.current { background: var(--blue); }
+
+/* Case */
+.qs-case { padding: 32px; border-bottom: 1px solid #1a1a1a; }
+.qs-case-meta {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+}
+.qs-case-tag {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--blue);
+  border: 1px solid rgba(20,0,255,0.3); padding: 3px 8px;
+}
+.qs-case-ref {
+  font-size: 10px; letter-spacing: 0.1em; color: #333; font-weight: 500;
+}
+.qs-case-text {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(18px, 3vw, 26px); font-weight: 700;
+  color: var(--white); line-height: 1.3; margin-bottom: 12px;
+}
+.qs-case-detail {
+  font-size: 12px; color: #444; line-height: 1.6; font-weight: 300;
+}
+
+/* Verdicts */
+.qs-verdicts {
+  display: flex; align-items: stretch; gap: 0;
+}
+.qs-verdict {
+  flex: 1; padding: 24px 28px;
+  background: transparent; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  transition: background 0.15s; border-top: none;
+  position: relative; overflow: hidden;
+}
+.qs-verdict::before {
+  content: ''; position: absolute; inset: 0;
+  opacity: 0; transition: opacity 0.15s;
+}
+.qs-verdict-yes::before { background: rgba(139,26,26,0.15); }
+.qs-verdict-no::before { background: rgba(26,107,53,0.15); }
+.qs-verdict:hover::before { opacity: 1; }
+.qs-verdict-yes { border-right: 1px solid #1a1a1a; border-top: 3px solid #6b1a1a; }
+.qs-verdict-no { border-top: 3px solid #1a6b35; }
+.qs-verdict-key {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px; font-weight: 900;
+  color: #333; line-height: 1;
+}
+.qs-verdict-yes .qs-verdict-key { color: #6b1a1a; }
+.qs-verdict-no .qs-verdict-key { color: #1a6b35; }
+.qs-verdict:hover .qs-verdict-key { filter: brightness(1.5); }
+.qs-verdict-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px; font-weight: 900; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--white);
+}
+.qs-verdict-sub {
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #333;
+}
+
+.qs-verdict-divider {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; flex-shrink: 0;
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #222;
+  border-top: 3px solid #111;
+  writing-mode: vertical-rl;
+}
+
+/* Explanation */
+.qs-explanation {
+  padding: 16px 32px;
+  display: flex; align-items: flex-start; gap: 12px;
+  animation: qsFadeIn 0.2s ease;
+}
+.qs-explanation.hidden { display: none; }
+.qs-expl-icon { font-size: 18px; flex-shrink: 0; }
+.qs-expl-text { font-size: 13px; color: #666; line-height: 1.6; font-weight: 300; }
+  .qs-judikat-link { color: var(--blue); text-decoration: none; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; margin-left: 6px; }
+  .qs-judikat-link:hover { text-decoration: underline; }
+.qs-explanation.correct { border-top: 1px solid #1a3a25; background: rgba(26,74,46,0.1); }
+.qs-explanation.wrong { border-top: 1px solid #3a1a1a; background: rgba(139,26,26,0.1); }
+.qs-explanation.timeout { border-top: 1px solid #2a2a1a; background: rgba(60,50,10,0.1); }
+
+/* End screen */
+.qs-end-emblem { font-size: 40px; margin-bottom: 16px; }
+.qs-end-stats {
+  display: flex; gap: 12px; justify-content: center; margin: 24px 0;
+}
+.qs-end-stat {
+  padding: 14px 20px; border: 1px solid #1a1a1a; text-align: center; flex: 1;
+}
+.qs-end-stat.correct { border-color: #1a3a25; }
+.qs-end-stat.wrong { border-color: #3a1a1a; }
+.qs-end-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px; font-weight: 900; color: var(--white); line-height: 1;
+}
+.qs-end-stat.correct .qs-end-num { color: #5DBF7A; }
+.qs-end-stat.wrong .qs-end-num { color: #E05555; }
+.qs-end-label {
+  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #333; margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .qs-section { padding: 60px 20px; }
+  .qs-header { flex-direction: column; gap: 20px; }
+  .qs-emblem { display: none; }
+  .qs-screen { padding: 28px 20px; }
+  .qs-topbar { padding: 16px 20px; }
+  .qs-case { padding: 24px 20px; }
+  .qs-verdicts { flex-direction: column; }
+  .qs-verdict-divider { display: none; }
+  .qs-verdict-yes { border-right: none; border-bottom: 1px solid #1a1a1a; }
+  .qs-explanation { padding: 14px 20px; }
+  .qs-dots { padding: 12px 20px; }
+}
+</style>
+
+<script>
+(function() {
+  const QS_CASES = [
+
+    // ── MAJETKOVÁ TRESTNÁ ČINNOST ──────────────────────────────────────────
+    {
+      text: "Ondřej záměrně poškrábá klíčem auto souseda. Způsobí škodu 7 800 Kč.",
+      detail: "§ 228 TZ — Poškození cizí věci. Hranice trestnosti: škoda nikoli nepatrná = 10 000 Kč.",
+      category: "MAJETKOVÁ TRESTNÁ ČINNOST", ref: "§ 228 TZ",
+      guilty: false,
+      explanation: "Přestupek — škoda 7 800 Kč nedosahuje zákonné hranice 10 000 Kč pro trestný čin poškození cizí věci (§ 228 TZ). Novela č. 333/2020 Sb. zdvojnásobila hranici z původních 5 000 Kč.",
+      judikat: null
+    },
+    {
+      text: "Jana v supermarketu odcizí kosmetiku v hodnotě 9 500 Kč. Je to poprvé.",
+      detail: "§ 205 TZ — Krádež. Škoda nikoli nepatrná = 10 000 Kč. Jana nebyla v posledních 3 letech odsouzena za krádež.",
+      category: "MAJETKOVÁ TRESTNÁ ČINNOST", ref: "§ 205 TZ",
+      guilty: false,
+      explanation: "Přestupek — škoda 9 500 Kč je pod hranicí 10 000 Kč a Jana nebyla v posledních 3 letech za krádež odsouzena. Bez recidivy a bez vloupání jde pouze o přestupek.",
+      judikat: null
+    },
+    {
+      text: "Martin byl před 2 lety odsouzen za krádež. Nyní odcizí věc za 500 Kč.",
+      detail: "§ 205 odst. 2 TZ — Krádež recidivistou. V posledních 3 letech byl odsouzen nebo potrestán za krádež.",
+      category: "MAJETKOVÁ TRESTNÁ ČINNOST", ref: "§ 205 odst. 2 TZ",
+      guilty: true,
+      explanation: "Trestný čin — § 205 odst. 2 TZ výslovně postihuje jako trestný čin i krádež bagatelní hodnoty, pokud byl pachatel v posledních 3 letech za krádež odsouzen nebo potrestán.",
+      judikat: null
+    },
+    {
+      text: "Radek jako firemní účetní si 2 roky posílá drobné částky na vlastní účet. Celkem 85 000 Kč.",
+      detail: "§ 206 TZ — Zpronevěra. Zákonná hranice větší škody = 50 000 Kč.",
+      category: "MAJETKOVÁ TRESTNÁ ČINNOST", ref: "§ 206 TZ",
+      guilty: true,
+      explanation: "Trestný čin — zpronevěra s celkovou škodou 85 000 Kč překračuje hranici větší škody (50 000 Kč dle § 138 TZ). Celková škoda se sčítá, i když šlo o drobné částky postupně.",
+      judikat: null
+    },
+    {
+      text: "Věra omylem vezme v obchodě cizí deštník, který se podobá jejímu. Zjistí to až doma.",
+      detail: "Majitel podal trestní oznámení pro krádež. § 205 TZ — nutný je úmysl pachatele.",
+      category: "MAJETKOVÁ TRESTNÁ ČINNOST", ref: "§ 205 TZ",
+      guilty: false,
+      explanation: "Není trestný čin — skutkový omyl vylučuje úmysl. Bez úmyslu přisvojit si cizí věc nelze naplnit skutkovou podstatu krádeže. Věc by měla být vrácena.",
+      judikat: null
+    },
+    {
+      text: "Zaměstnankyně ukradne z továrny kabelku. Výrobní cena kabelky je 3 000 Kč, v obchodě se prodává za 15 000 Kč.",
+      detail: "§ 205 TZ — Krádež. Jak se stanoví výše škody? Z výrobní nebo maloobchodní ceny?",
+      category: "MAJETKOVÁ TRESTNÁ ČINNOST", ref: "§ 137 + § 205 TZ",
+      guilty: true,
+      explanation: "Trestný čin — dle § 137 TZ a ustálené judikatury NS se škoda stanovuje z maloobchodní (obvyklé) ceny, tj. 15 000 Kč. Tato částka překračuje hranici 10 000 Kč.",
+      judikat: "https://dostupnyadvokat.cz/blog/hranice-skody-v-trestnim-rizeni"
+    },
+    {
+      text: "Petr se vloupá do prázdné chaty a odcizí věci za 8 000 Kč.",
+      detail: "§ 205 odst. 1 písm. b) TZ — Krádež vloupáním. Škoda je pod 10 000 Kč, ale byl spáchán vloupáním.",
+      category: "MAJETKOVÁ TRESTNÁ ČINNOST", ref: "§ 205 odst. 1 písm. b) TZ",
+      guilty: true,
+      explanation: "Trestný čin — krádež spáchaná vloupáním je trestná bez ohledu na výši škody, protože § 205 odst. 1 písm. b) TZ vloupání výslovně postihuje jako samostatnou kvalifikaci.",
+      judikat: null
+    },
+
+    // ── NUTNÁ OBRANA & KRAJNÍ NOUZE ────────────────────────────────────────
+    {
+      text: "Jakub v sebeobraně zlomí útočníkovi ruku poté, co ho útočník praštil pěstí. Útok v tu chvíli ustává.",
+      detail: "§ 29 TZ — Nutná obrana. Podmínka: útok musí být přímo hrozící nebo trvající.",
+      category: "NUTNÁ OBRANA", ref: "§ 29 TZ",
+      guilty: false,
+      explanation: "Nutná obrana — zranění bylo způsobeno při odvracení probíhajícího útoku. Dle NS ČR nemusí být obrana zcela ekvivalentní útoku, musí být způsobilá jej odvrátit (sp. zn. 5 Tdo 162/2007).",
+      judikat: null
+    },
+    {
+      text: "Majitel sběrny vystřelí z brokovnice na odjíždějící auto zlodějů a vážně zraní jednoho z nich. Krádež již byla dokonána.",
+      detail: "§ 29 TZ — Nutná obrana. Útok již byl ukončen — zloději odjíždějí s kořistí.",
+      category: "NUTNÁ OBRANA", ref: "§ 29 TZ",
+      guilty: true,
+      explanation: "Trestný čin — útok byl již ukončen (zloději odjíždějí), obrana po skončení útoku je tzv. extenzivní exces z nutné obrany. Reálný případ, pachatel dostal 6 let, poté prezidentskou milost.",
+      judikat: null
+    },
+    {
+      text: "Eva rozbije okno auta, v němž vidí v létě zavřené dítě bez vědomí. Majitele nelze kontaktovat.",
+      detail: "§ 28 TZ — Krajní nouze. Nebezpečí nelze jinak odvrátit, způsobený následek musí být méně závažný.",
+      category: "KRAJNÍ NOUZE", ref: "§ 28 TZ",
+      guilty: false,
+      explanation: "Krajní nouze — rozbití okna (škoda ~5 000 Kč) je zřejmě méně závažné než ohrožení života dítěte. Dle ustálené judikatury jsou podmínky krajní nouze splněny.",
+      judikat: null
+    },
+    {
+      text: "Řidič projede na červenou, aby rychle převezl vážně zraněného spolucestujícího do nemocnice.",
+      detail: "§ 28 TZ — Krajní nouze. Přestupek za jízdu na červenou vs. zájem na ochraně zdraví/života.",
+      category: "KRAJNÍ NOUZE", ref: "§ 28 TZ",
+      guilty: false,
+      explanation: "Krajní nouze — přestupek (jízda na červenou) je zřejmě méně závažný než hrozící újma na zdraví či životě. Podmínky § 28 TZ jsou splněny za předpokladu, že neexistovala jiná možnost.",
+      judikat: null
+    },
+    {
+      text: "Obviněný vezl nemocnou dceru autem do nemocnice bez řidičského průkazu. Soused odmítl odvézt je autem, ale měl telefon a byl ochoten zavolat záchranku.",
+      detail: "§ 28 TZ — Krajní nouze. Podmínka subsidiarity: nebezpečí nelze odvrátit jinak.",
+      category: "KRAJNÍ NOUZE", ref: "§ 28 TZ",
+      guilty: true,
+      explanation: "Trestný čin — podmínky krajní nouze splněny nebyly. Záchranku šlo přivolat telefonem, takže nebezpečí bylo možno odvrátit jinak. Subsidiarity krajní nouze zde chyběla (skutečný judikát NS ČR).",
+      judikat: "https://bezpecny.stredoceskykraj.cz/temata/osobni-bezpeci-nutna-obrana-a-krajni-nouze-pcr/"
+    },
+
+    // ── DOPRAVNÍ TRESTNÁ ČINNOST ───────────────────────────────────────────
+    {
+      text: "Pavel řídí auto s hladinou 1,8 ‰ alkoholu. Žádná nehoda se nestala, bezpečně dojel domů.",
+      detail: "§ 274 TZ — Ohrožení pod vlivem návykové látky. Hranice trestnosti: 1 ‰.",
+      category: "DOPRAVNÍ TRESTNÁ ČINNOST", ref: "§ 274 TZ",
+      guilty: true,
+      explanation: "Trestný čin — řízení s hladinou alkoholu nad 1 ‰ naplňuje § 274 TZ bez ohledu na to, zda k nehodě došlo. Postačí ohrožení, nevyžaduje se porucha.",
+      judikat: null
+    },
+    {
+      text: "Lucie způsobí dopravní nehodu z nepozornosti. Chodec utrpí zlomeninu ruky (lehké zranění).",
+      detail: "§ 147 TZ — Těžká újma na zdraví z nedbalosti. § 148 TZ — Ublížení na zdraví z nedbalosti.",
+      category: "DOPRAVNÍ TRESTNÁ ČINNOST", ref: "§ 148 TZ",
+      guilty: true,
+      explanation: "Trestný čin — ublížení na zdraví z nedbalosti (§ 148 TZ) postihuje i lehčí zranění způsobená v provozu. Zlomenina ruky naplňuje znak ublížení na zdraví.",
+      judikat: null
+    },
+    {
+      text: "Tomáš jede 80 km/h v obci, kde je omezení 50 km/h. Žádná nehoda se nestane.",
+      detail: "Překročení rychlosti o 30 km/h v obci. § 125c zákona o silničním provozu — přestupek.",
+      category: "DOPRAVNÍ TRESTNÁ ČINNOST", ref: "§ 125c zák. č. 361/2000 Sb.",
+      guilty: false,
+      explanation: "Přestupek — překročení rychlosti bez nehody a bez ohrožení konkrétní osoby je přestupkem dle § 125c zákona o silničním provozu, nikoliv trestným činem.",
+      judikat: null
+    },
+
+    // ── NÁSILNÁ TRESTNÁ ČINNOST ────────────────────────────────────────────
+    {
+      text: "Karel v hádce vyhrožuje sousedovi: 'Ještě jednou zakřičíš a zlomím ti nohu!'",
+      detail: "§ 353 TZ — Nebezpečné vyhrožování. Musí být způsobilé vzbudit důvodnou obavu.",
+      category: "NÁSILNÁ TRESTNÁ ČINNOST", ref: "§ 353 TZ",
+      guilty: true,
+      explanation: "Trestný čin — vyhrožování újmou na zdraví, které je způsobilé vzbudit důvodnou obavu, naplňuje § 353 TZ. Výhrůžka zlomením nohy je konkrétní a reálná.",
+      judikat: null
+    },
+    {
+      text: "Miloš při hádce řekne kolegovi: 'Ty seš ale blbec, jednou tě praštím!' Říká to v afektu, v klidu se omluví.",
+      detail: "§ 353 TZ — Nebezpečné vyhrožování. Podmínka: výhrůžka způsobilá vzbudit důvodnou obavu.",
+      category: "NÁSILNÁ TRESTNÁ ČINNOST", ref: "§ 353 TZ",
+      guilty: false,
+      explanation: "Spíše přestupek — výhrůžka bez konkrétnosti a s okamžitou omluvou nemusí dosáhnout intenzity nutné pro trestný čin. NS ČR vyžaduje, aby výhrůžka byla způsobilá vzbudit důvodnou obavu.",
+      judikat: null
+    },
+    {
+      text: "Dva muži se porvou v hospodě. Jeden druhému způsobí modřiny a malé tržné poranění (ošetření bez hospitalizace).",
+      detail: "§ 146 TZ — Ublížení na zdraví. § 49 zák. č. 250/2016 Sb. — přestupek na úseku ochrany zdraví.",
+      category: "NÁSILNÁ TRESTNÁ ČINNOST", ref: "§ 146 TZ",
+      guilty: false,
+      explanation: "Zpravidla přestupek — drobná zranění bez delší pracovní neschopnosti nebo hospitalizace obvykle nenaplňují intenzitu ublížení na zdraví dle § 146 TZ. Záleží na konkrétních okolnostech.",
+      judikat: null
+    },
+
+    // ── PODVODNÉ JEDNÁNÍ ───────────────────────────────────────────────────
+    {
+      text: "Marta si vezme půjčku 80 000 Kč s úmyslem ji od počátku nesplatit. Peníze utratí a dluh ignoruje.",
+      detail: "§ 209 TZ — Podvod. Klíčový je úmysl při uzavření smlouvy.",
+      category: "PODVODNÉ JEDNÁNÍ", ref: "§ 209 TZ",
+      guilty: true,
+      explanation: "Trestný čin — podvod vyžaduje úmysl uvést v omyl již při uzavření smlouvy. Pokud si Marta od počátku věděla, že půjčku nesplatí, naplňuje její jednání skutkovou podstatu podvodu.",
+      judikat: null
+    },
+    {
+      text: "Ondřej si vezme půjčku poctivě, pak přijde o práci a půjčku nedokáže splatit.",
+      detail: "§ 209 TZ — Podvod. Věřitel podal trestní oznámení. Úmysl chyběl při uzavření smlouvy.",
+      category: "PODVODNÉ JEDNÁNÍ", ref: "§ 209 TZ",
+      guilty: false,
+      explanation: "Není trestný čin — chybí podvodný úmysl při uzavření smlouvy. Neschopnost splácet v důsledku změny životní situace je věcí občanského práva, nikoliv trestnou činností.",
+      judikat: null
+    },
+    {
+      text: "Jakub prodá ojeté auto a zamlčí kupci závažné technické závady. Kupec zaplatí 120 000 Kč.",
+      detail: "§ 209 TZ — Podvod uveden v omyl zamlčením podstatné skutečnosti. Škoda = rozdíl tržní hodnoty.",
+      category: "PODVODNÉ JEDNÁNÍ", ref: "§ 209 TZ",
+      guilty: true,
+      explanation: "Trestný čin — zamlčení podstatné skutečnosti (závad) s cílem obohatit se na úkor kupce naplňuje podvod dle § 209 TZ. NS ČR opakovaně potvrdil, že zamlčení = uvádění v omyl.",
+      judikat: null
+    },
+
+    // ── DROGOVÁ TRESTNÁ ČINNOST ────────────────────────────────────────────
+    {
+      text: "Simona pěstuje 3 rostliny konopí na balkoně výhradně pro vlastní potřebu.",
+      detail: "§ 284 TZ — Přechovávání omamné látky. Malé množství pro vlastní potřebu.",
+      category: "DROGOVÁ TRESTNÁ ČINNOST", ref: "§ 284 TZ",
+      guilty: false,
+      explanation: "Přestupek — pěstování malého množství konopí pro vlastní potřebu je dle platné judikatury přestupkem. Trestný čin by nastal při větším množství nebo distribuci.",
+      judikat: null
+    },
+    {
+      text: "Lukáš přechovává 2 gramy pervitinu pro vlastní potřebu.",
+      detail: "§ 284 TZ — Přechovávání omamné látky v množství větším než malém. Pervitin = psychotropní látka.",
+      category: "DROGOVÁ TRESTNÁ ČINNOST", ref: "§ 284 TZ",
+      guilty: true,
+      explanation: "Trestný čin — 2 gramy pervitinu přesahují hranici 'malého množství'. U pervitinu je hranicí cca 0,5–1 gram. Přechovávání v množství větším než malém naplňuje § 284 TZ.",
+      judikat: null
+    },
+
+    // ── AUTORSKÁ PRÁVA ─────────────────────────────────────────────────────
+    {
+      text: "Tomáš stáhne film z pirátského webu a sdílí ho na sociální síti dalším 500 uživatelům.",
+      detail: "§ 270 TZ — Porušení autorského práva. Veřejné sdílení = šíření bez souhlasu autora.",
+      category: "AUTORSKÁ PRÁVA", ref: "§ 270 TZ",
+      guilty: true,
+      explanation: "Trestný čin — sdílení (upload) díla bez souhlasu autora naplňuje § 270 TZ. Samotné stažení pro soukromou potřebu by bylo méně jasné, ale veřejné šíření 500 uživatelům je trestné.",
+      judikat: null
+    },
+    {
+      text: "Petra pro osobní potřebu zkopíruje celou knihu na kopírce v knihovně.",
+      detail: "§ 270 TZ — Porušení autorského práva. Výjimka pro soukromé kopírování — § 30 AutZ.",
+      category: "AUTORSKÁ PRÁVA", ref: "§ 30 AutZ / § 270 TZ",
+      guilty: false,
+      explanation: "Není trestný čin — § 30 autorského zákona povoluje kopírování díla pro vlastní soukromou potřebu fyzické osoby. Trestný čin by nastal teprve při šíření nebo komerčním využití.",
+      judikat: null
+    },
+
+    // ── TRESTNÍ ODPOVĚDNOST — SPECIÁLNÍ PŘÍPADY ───────────────────────────
+    {
+      text: "Třináctiletý chlapec úmyslně zapálí auto souseda. Způsobí škodu 200 000 Kč.",
+      detail: "§ 25 TZ — Věková hranice trestní odpovědnosti je 15 let.",
+      category: "TRESTNÍ ODPOVĚDNOST", ref: "§ 25 TZ",
+      guilty: false,
+      explanation: "Není trestný čin — dle § 25 TZ není trestně odpovědný ten, kdo v době spáchání činu nedovršil patnáctý rok věku. Chlapec může být řešen v rámci soudnictví nad mládeží.",
+      judikat: null
+    },
+    {
+      text: "Opilý muž (2,8 ‰) rozbije ve vzteku výlohu obchodu. Škoda 25 000 Kč.",
+      detail: "§ 228 TZ — Poškození cizí věci. Pachatel namítá, že byl tak opilý, že nevěděl co dělá.",
+      category: "TRESTNÍ ODPOVĚDNOST", ref: "§ 228 + § 26 + § 360 TZ",
+      guilty: true,
+      explanation: "Trestný čin — dobrovolná opilost nezbavuje trestní odpovědnosti. § 360 TZ (actio libera in causa) stanoví, že kdo se úmyslně přivede do stavu nepříčetnosti, trestně odpovídá.",
+      judikat: null
+    },
+    {
+      text: "Podnikatel nelegálně zaměstnává cizince bez povolení. Policie věc odhalí.",
+      detail: "§ 342 TZ — Neoprávněné zaměstnávání cizinců. Trestnost od 10 neoprávněně zaměstnaných nebo opakování.",
+      category: "HOSPODÁŘSKÁ TRESTNÁ ČINNOST", ref: "§ 342 TZ",
+      guilty: false,
+      explanation: "Zpravidla přestupek — neoprávněné zaměstnávání cizinců je trestným činem až při zaměstnání 10 nebo více osob, nebo při opakování. U jednoho či dvou cizinců jde o přestupek dle zákona o zaměstnanosti.",
+      judikat: null
+    },
+    {
+      text: "Lékař předepíše pacienta léky, které sám odebírá od farmaceutické firmy výměnou za provizi.",
+      detail: "§ 332 TZ — Podplácení. § 334 TZ — Nepřímé úplatkářství. Provize za předpis léků.",
+      category: "KORUPCE", ref: "§ 332 TZ",
+      guilty: true,
+      explanation: "Trestný čin — přijímání provizí od farmaceutických firem výměnou za předpisy naplňuje skutkovou podstatu nepřímého úplatkářství nebo podplácení. NS ČR tuto praxi opakovaně odsoudil.",
+      judikat: null
+    },
+    {
+      text: "Soudce přijme od obžalovaného obálku s 50 000 Kč s tím, že věc 'lépe dopadne'.",
+      detail: "§ 331 TZ — Přijetí úplatku. Zvlášť závažný zločin pro veřejného činitele.",
+      category: "KORUPCE", ref: "§ 331 TZ",
+      guilty: true,
+      explanation: "Trestný čin — přijetí úplatku veřejným činitelem (soudcem) je zvlášť závažným zločinem dle § 331 TZ. Hrozí až 12 let odnětí svobody.",
+      judikat: null
+    },
+    {
+      text: "Starosta přidělí lukrativní veřejnou zakázku firmě svého příbuzného bez výběrového řízení.",
+      detail: "§ 256 TZ — Zjednání výhody při zadání veřejné zakázky. Poškození soutěže.",
+      category: "HOSPODÁŘSKÁ TRESTNÁ ČINNOST", ref: "§ 256 TZ",
+      guilty: true,
+      explanation: "Trestný čin — zjednání výhody konkrétnímu uchazeči při zadávání veřejné zakázky naplňuje § 256 TZ. Příbuzenský vztah a absence výběrového řízení jsou typickými znaky tohoto trestného činu.",
+      judikat: null
+    },
+
+    // ── KYBERNETICKÁ TRESTNÁ ČINNOST ───────────────────────────────────────
+    {
+      text: "Hacker se dostane do firemního systému a stáhne databázi klientů, aniž cokoliv změní nebo smaže.",
+      detail: "§ 230 TZ — Neoprávněný přístup k počítačovému systému. Nevyžaduje se způsobení škody.",
+      category: "KYBERNETICKÁ TRESTNÁ ČINNOST", ref: "§ 230 TZ",
+      guilty: true,
+      explanation: "Trestný čin — § 230 TZ postihuje samotný neoprávněný přístup k počítačovému systému bez nutnosti způsobení škody. Stažení databáze je navíc neoprávněným získáním dat.",
+      judikat: null
+    },
+    {
+      text: "Teenager rozešle na 200 lidí spam s reklamou na eshop svého kamaráda. Nepoužije žádný malware.",
+      detail: "§ 10 zák. č. 480/2004 Sb. — Zákon o některých službách informační společnosti. Spam jako přestupek.",
+      category: "KYBERNETICKÁ TRESTNÁ ČINNOST", ref: "§ 10 zák. č. 480/2004 Sb.",
+      guilty: false,
+      explanation: "Přestupek — rozesílání nevyžádaných obchodních sdělení (spam) bez škodlivého software je přestupkem dle zákona č. 480/2004 Sb., nikoliv trestným činem.",
+      judikat: null
+    },
+
+    // ── SEXUÁLNÍ TRESTNÉ ČINY ──────────────────────────────────────────────
+    {
+      text: "Muž (22) dobrovolně udržuje pohlavní styk s dívkou (14) s jejím souhlasem a souhlasem rodičů.",
+      detail: "§ 187 TZ — Pohlavní zneužití. Hranice sexuálního věku souhlasu = 15 let. Souhlas nezletilé ani rodičů nemá právní účinek.",
+      category: "SEXUÁLNÍ TRESTNÉ ČINY", ref: "§ 187 TZ",
+      guilty: true,
+      explanation: "Trestný čin — pohlavní styk s osobou mladší 15 let je trestný bez ohledu na souhlas. Hranice sexuálního věku souhlasu je v ČR 15 let, souhlas nezletilé ani rodičů nemá žádný právní účinek.",
+      judikat: null
+    },
+
+    // ── OBECNĚ NEBEZPEČNÉ ČINY ─────────────────────────────────────────────
+    {
+      text: "Žák (16) na ZŠ přinese do školy funkční střelnou zbraň a ukáže ji spolužákům. Střelba se nekoná.",
+      detail: "§ 279 TZ — Nedovolené ozbrojování. Nezletilí a střelné zbraně.",
+      category: "OBECNĚ NEBEZPEČNÉ ČINY", ref: "§ 279 TZ",
+      guilty: true,
+      explanation: "Trestný čin — přinést střelnou zbraň do školy naplňuje § 279 TZ (nedovolené ozbrojování). 16letý je již trestně odpovědný jako mladistvý (§ 25 TZ = hranice 15 let).",
+      judikat: null
+    },
+    {
+      text: "Soused v noci rozhodí na chodníku sůl, aby odstranilo náledí. Chodec uklouzne přesto a zlomí si zápěstí.",
+      detail: "Soused věc oznámil a provedl rozumná opatření. Trestní odpovědnost za nedbalost?",
+      category: "TRESTNÍ ODPOVĚDNOST", ref: "§ 148 TZ",
+      guilty: false,
+      explanation: "Zpravidla není trestný čin — soused učinil přiměřená opatření. Bez zavinění (úmyslu nebo nedbalosti) nelze dovodit trestní odpovědnost. Jde maximálně o civilní náhradu škody.",
+      judikat: null
+    }
+  ];
+
+  let qsState = { q: 0, score: 0, correct: 0, wrong: 0, streak: 0, timer: null, timeLeft: 8, timerMax: 8, answering: false, cases: [] };
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  window.qsSetSpeed = function(t, btn) {
+    document.querySelectorAll('.qs-speed-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    qsState.timerMax = t;
+  };
+
+  window.qsStart = function() {
+    qsState = { q: 0, score: 0, correct: 0, wrong: 0, streak: 0, timer: null, timeLeft: qsState.timerMax, timerMax: qsState.timerMax, answering: false, cases: shuffle(QS_CASES).slice(0, 15) };
+    document.getElementById('qs-start').classList.add('hidden');
+    document.getElementById('qs-end').classList.add('hidden');
+    document.getElementById('qs-game').classList.remove('hidden');
+    qsBuildDots();
+    qsShowCase();
+  };
+
+  window.qsRestart = function() {
+    document.getElementById('qs-end').classList.add('hidden');
+    document.getElementById('qs-start').classList.remove('hidden');
+  };
+
+  function qsBuildDots() {
+    const wrap = document.getElementById('qs-dots');
+    wrap.innerHTML = '';
+    for (let i = 0; i < 15; i++) {
+      const d = document.createElement('div');
+      d.className = 'qs-dot' + (i === 0 ? ' current' : '');
+      d.id = `qs-dot-${i}`;
+      wrap.appendChild(d);
+    }
+  }
+
+  function qsShowCase() {
+    const c = qsState.cases[qsState.q];
+    qsState.answering = false;
+    document.getElementById('qs-cat').textContent = c.category;
+    document.getElementById('qs-ref').textContent = c.ref;
+    document.getElementById('qs-text').textContent = c.text;
+    document.getElementById('qs-detail').textContent = c.detail;
+    document.getElementById('qs-qnum').textContent = `${qsState.q + 1} / 15`;
+    document.getElementById('qs-score').textContent = qsState.score;
+    document.getElementById('qs-explanation').className = 'qs-explanation hidden';
+    document.getElementById('qs-btn-yes').disabled = false;
+    document.getElementById('qs-btn-no').disabled = false;
+
+    if (qsState.q > 0) document.getElementById(`qs-dot-${qsState.q - 1}`)?.classList.remove('current');
+    document.getElementById(`qs-dot-${qsState.q}`)?.classList.add('current');
+
+    clearInterval(qsState.timer);
+    qsState.timeLeft = qsState.timerMax;
+    qsUpdateRing();
+    qsState.timer = setInterval(qsTick, 100);
+  }
+
+  function qsTick() {
+    qsState.timeLeft = Math.max(0, qsState.timeLeft - 0.1);
+    qsUpdateRing();
+    if (qsState.timeLeft <= 0) { clearInterval(qsState.timer); qsTimeout(); }
+  }
+
+  function qsUpdateRing() {
+    const pct = qsState.timeLeft / qsState.timerMax;
+    const circumference = 113;
+    const offset = circumference * (1 - pct);
+    const ring = document.getElementById('qs-ring-fg');
+    ring.style.strokeDashoffset = offset;
+    ring.style.stroke = pct > 0.5 ? 'var(--blue)' : pct > 0.25 ? '#ff8c00' : '#cc1a1a';
+    document.getElementById('qs-timer-num').textContent = Math.ceil(qsState.timeLeft);
+  }
+
+  function qsTimeout() {
+    if (qsState.answering) return;
+    qsState.answering = true;
+    qsState.streak = 0;
+    const dot = document.getElementById(`qs-dot-${qsState.q}`);
+    if (dot) { dot.classList.remove('current'); dot.classList.add('wrong'); }
+    const _tc = qsState.cases[qsState.q]; qsShowExplanation('timeout', '⏱', 'Čas vypršel — ' + _tc.explanation, _tc.judikat);
+    document.getElementById('qs-btn-yes').disabled = true;
+    document.getElementById('qs-btn-no').disabled = true;
+    setTimeout(qsNext, 2500);
+  }
+
+  window.qsAnswer = function(isGuilty) {
+    if (qsState.answering) return;
+    qsState.answering = true;
+    clearInterval(qsState.timer);
+    const c = qsState.cases[qsState.q];
+    const correct = isGuilty === c.guilty;
+    const dot = document.getElementById(`qs-dot-${qsState.q}`);
+    document.getElementById('qs-btn-yes').disabled = true;
+    document.getElementById('qs-btn-no').disabled = true;
+
+    if (correct) {
+      const bonus = Math.ceil(qsState.timeLeft);
+      qsState.score += 10 + bonus;
+      qsState.correct++;
+      qsState.streak++;
+      if (dot) { dot.classList.remove('current'); dot.classList.add('correct'); }
+      qsShowExplanation('correct', '✓', c.explanation + (qsState.streak >= 3 ? ` — ${qsState.streak}× série!` : ''), c.judikat);
+    } else {
+      qsState.wrong++;
+      qsState.streak = 0;
+      if (dot) { dot.classList.remove('current'); dot.classList.add('wrong'); }
+      qsShowExplanation('wrong', '✕', c.explanation, c.judikat);
+    }
+    document.getElementById('qs-score').textContent = qsState.score;
+    setTimeout(qsNext, 2200);
+  };
+
+  function qsShowExplanation(type, icon, text, judikat) {
+    const el = document.getElementById('qs-explanation');
+    el.className = `qs-explanation ${type}`;
+    document.getElementById('qs-expl-icon').textContent = icon;
+    let html = text;
+    if (judikat) {
+      html += ` <a href="${judikat}" target="_blank" class="qs-judikat-link">→ Zdroj</a>`;
+    }
+    document.getElementById('qs-expl-text').innerHTML = html;
+  }
+
+  function qsNext() {
+    qsState.q++;
+    if (qsState.q >= 15) qsEnd();
+    else qsShowCase();
+  }
+
+  function qsEnd() {
+    clearInterval(qsState.timer);
+    document.getElementById('qs-game').classList.add('hidden');
+    const pct = qsState.correct / 15;
+    let icon, title, verdict;
+    if (pct >= 0.9) { icon = '🏛'; title = 'VÝBORNÝ SOUDCE'; verdict = 'Vaše znalost práva je vynikající. Česká republika je v bezpečných rukou.'; }
+    else if (pct >= 0.7) { icon = '⚖'; title = 'DOBRÝ SOUDCE'; verdict = 'Solidní výsledek. S trochou praxe budete neomylní.'; }
+    else if (pct >= 0.5) { icon = '📋'; title = 'PRŮMĚRNÝ VÝSLEDEK'; verdict = 'Doporučujeme prostudovat Trestní zákoník — zejména hranice škod.'; }
+    else { icon = '🔴'; title = 'NÁVRH ZAMÍTNUT'; verdict = 'Váš návrh na jmenování soudcem byl zamítnut. Opakujte zkoušku.'; }
+    document.getElementById('qs-end-icon').textContent = icon;
+    document.getElementById('qs-end-title').textContent = title;
+    document.getElementById('qs-end-score').textContent = qsState.score;
+    document.getElementById('qs-end-correct').textContent = qsState.correct;
+    document.getElementById('qs-end-wrong').textContent = qsState.wrong;
+    document.getElementById('qs-end-verdict').textContent = verdict;
+    document.getElementById('qs-end').classList.remove('hidden');
+  }
+
+  // Keyboard support — only when game section is visible
+  document.addEventListener('keydown', e => {
+    const game = document.getElementById('qs-game');
+    if (!game || game.classList.contains('hidden')) return;
+    if (e.key === 'ArrowLeft') qsAnswer(true);
+    if (e.key === 'ArrowRight') qsAnswer(false);
+  });
+})();
+</script>
 
 <footer>
   <span>© 2025 Oskar Shindler</span>

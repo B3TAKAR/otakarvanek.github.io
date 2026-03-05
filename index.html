@@ -80,7 +80,7 @@
   @keyframes hjpulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   .app-live-label { font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: #666; }
 
-  .app-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 16px; padding: 24px; align-items: end; border-bottom: 1px solid #eee; }
+  .app-form { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr auto; gap: 16px; padding: 24px; align-items: end; border-bottom: 1px solid #eee; flex-wrap: wrap; }
   .app-label { display: block; font-size: 10px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--grey); margin-bottom: 6px; }
   .app-select { width: 100%; padding: 10px 32px 10px 12px; border: 1px solid #ddd; background: #fafafa; font-size: 13px; font-family: 'Barlow', sans-serif; color: var(--black); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; cursor: pointer; transition: border-color 0.2s; }
   .app-select:focus { outline: none; border-color: var(--blue); }
@@ -116,6 +116,10 @@
   .badge-grey { background: #f0f0f0; color: #666; border: 1px solid #ddd; }
   .badge-blue { background: #eef; color: var(--blue); border: 1px solid #ccf; }
   .badge-green { background: #f0fff0; color: #060; border: 1px solid #cfc; }
+  .badge-blue { background: #eef; color: var(--blue); border: 1px solid #ccf; }
+  .badge-instance-1 { background: #f0f0ff; color: #333; border: 1px solid #ddd; }
+  .badge-instance-2 { background: #fff8e0; color: #7a5800; border: 1px solid #f0d080; }
+  .badge-instance-d { background: #fff0f0; color: #800; border: 1px solid #fcc; }
 
   .detail-table { width: 100%; border-collapse: collapse; }
   .detail-row td { padding: 9px 16px; font-size: 13px; border-bottom: 1px solid #f5f5f5; }
@@ -197,7 +201,7 @@
     .hero { padding-left: 20px; padding-right: 20px; }
     .hero-meta { display: none; }
     .app-wrap { padding: 40px 20px; }
-    .app-form { grid-template-columns: 1fr; }
+    .app-form { grid-template-columns: 1fr 1fr; }
     footer { flex-direction: column; gap: 8px; padding: 20px; }
   }
 </style>
@@ -244,6 +248,27 @@
         <label class="app-label">Pobočka</label>
         <select class="app-select" id="hj-pobocka" disabled>
           <option value="">— Celý soud —</option>
+        </select>
+      </div>
+      <div class="app-field">
+        <label class="app-label">Oblast práva</label>
+        <select class="app-select" id="hj-oblast">
+          <option value="">— Vše —</option>
+          <option value="T">Trestní</option>
+          <option value="C">Civilní</option>
+          <option value="P">Rodinné</option>
+          <option value="Cm,K">Obchodní</option>
+          <option value="INS">Insolvenční</option>
+          <option value="A">Správní</option>
+          <option value="Nc">Nesporné</option>
+        </select>
+      </div>
+      <div class="app-field">
+        <label class="app-label">Stupeň</label>
+        <select class="app-select" id="hj-stupen">
+          <option value="">— Vše —</option>
+          <option value="1">1. stupeň</option>
+          <option value="2">2. stupeň (odvolání)</option>
         </select>
       </div>
       <div class="app-field">
@@ -537,11 +562,33 @@
 
         // Deduplicate by time + case
         const seen = new Set();
-        const unique = udalosti.filter(u => {
+        let unique = udalosti.filter(u => {
           const key = `${u.cas}-${u.cislo}-${u.druh}-${u.rocnik}`;
           if (seen.has(key)) return false;
           seen.add(key); return true;
         });
+
+        // Filter by oblast práva
+        const oblastFilter = document.getElementById('hj-oblast').value;
+        if (oblastFilter) {
+          const prefixes = oblastFilter.split(',');
+          unique = unique.filter(u => {
+            const d = (u.druh || '').trim();
+            return prefixes.some(p => d.startsWith(p));
+          });
+        }
+
+        // Filter by stupen
+        const stupenFilter = document.getElementById('hj-stupen').value;
+        if (stupenFilter) {
+          unique = unique.filter(u => {
+            const d = (u.druh || '').trim();
+            if (stupenFilter === 'D') return /DO$/.test(d);
+            if (stupenFilter === '2') return /O$/.test(d) && !/DO$/.test(d);
+            if (stupenFilter === '1') return !/O$/.test(d);
+            return true;
+          });
+        }
 
         totalHearings += unique.length;
 
@@ -558,8 +605,27 @@
             const caseNum = [u.cislo, u.druh, u.rocnik].filter(x => x != null).join(' ');
             const zruseno = u.jednaniZruseno;
             const neverejne = u.neverejneJednani;
+
+            // Detect law area and instance from druh (case type code)
+            const druh = (u.druh || '').trim();
+            let oblast = '', instance = '';
+            if (/^T/.test(druh)) oblast = 'Trestní';
+            else if (/^Co?m/.test(druh) || druh === 'K' || druh === 'Km') oblast = 'Obchodní';
+            else if (/^C/.test(druh)) oblast = 'Civilní';
+            else if (/^P/.test(druh)) oblast = 'Rodinné';
+            else if (/^INS/.test(druh)) oblast = 'Insolvenční';
+            else if (/^A/.test(druh)) oblast = 'Správní';
+            else if (/^Nc/.test(druh)) oblast = 'Nesporné';
+            else if (druh) oblast = druh;
+
+            if (/DO$/.test(druh)) instance = 'Dovolání';
+            else if (/O$/.test(druh)) instance = '2. stupeň';
+            else if (druh) instance = '1. stupeň';
+
             let badges = '';
             if (zruseno) badges += '<span class="badge badge-red">Zrušeno</span>';
+            if (oblast) badges += `<span class="badge badge-blue">${oblast}</span>`;
+            if (instance) badges += `<span class="badge badge-instance ${instance === '1. stupeň' ? 'badge-instance-1' : instance === '2. stupeň' ? 'badge-instance-2' : 'badge-instance-d'}">${instance}</span>`;
             badges += neverejne ? '<span class="badge badge-grey">Neveřejné</span>' : '<span class="badge badge-green">Veřejné</span>';
             const infoSoudUrl = (u.cislo && u.druh && u.bcVec && u.rocnik)
               ? `https://infosoud.gov.cz/InfoSoud/detail-rizeni?typOrganizace=VSECHNY_KRAJE&druhOrganizace=${courtId}&cisloSenatu=${u.cislo}&druhVeci=${u.druh}&bcVec=${u.bcVec}&rocnik=${u.rocnik}`

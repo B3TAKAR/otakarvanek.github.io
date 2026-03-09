@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DOCKET / Hledač Jednání</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22white%22 rx=%2214%22/><rect x=%223%22 y=%223%22 width=%2294%22 height=%2294%22 fill=%22none%22 stroke=%22%231400FF%22 stroke-width=%223%22 rx=%2212%22/><circle cx=%2236%22 cy=%2246%22 r=%2218%22 fill=%22none%22 stroke=%22%230a0a0a%22 stroke-width=%225%22/><line x1=%2250%22 y1=%2260%22 x2=%2262%22 y2=%2274%22 stroke=%22%230a0a0a%22 stroke-width=%225%22 stroke-linecap=%22round%22/><text x=%2275%22 y=%2257%22 font-size=%2234%22 text-anchor=%22middle%22 fill=%22%231400FF%22 font-family=%22Georgia,serif%22 font-weight=%22700%22>%C2%A7</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -291,12 +292,12 @@
 
 <footer>
   <span>© 2026 Otakar Vaněk</span>
-  <span><a href="mailto:otakar.vanekk@gmail.com" style="color:var(--grey);text-decoration:none">otakar.vanekk@gmail.com</a></span>
+  <span><a href="/cdn-cgi/l/email-protection#fc93889d979d8ed28a9d92999797bc9b919d9590d29f9391" style="color:var(--grey);text-decoration:none"><span class="__cf_email__" data-cfemail="9df2e9fcf6fcefb3ebfcf3f8f6f6ddfaf0fcf4f1b3fef2f0">[email&#160;protected]</span></a></span>
   <span>Data: infosoud.gov.cz</span>
 </footer>
 </div><!-- /page-main -->
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 (function() {
   const API = 'https://hledac-proxy.otakar-84f.workers.dev';
   let currentSins = [];
@@ -961,14 +962,4 @@ window.showPage = function(page) {
     document.getElementById('qs-end').classList.remove('hidden');
   }
 
-  document.addEventListener('keydown', e => {
-    const game=document.getElementById('qs-game');
-    if(!game||game.classList.contains('hidden')) return;
-    if(e.key==='ArrowLeft') qsAnswer(true);
-    if(e.key==='ArrowRight') qsAnswer(false);
-  });
-})();
-</script>
-
-</body>
-</html>
+  document.addEventListener('key

@@ -435,6 +435,8 @@
 
     statusEl.innerHTML = '<div class="app-status-loading">Načítám jednací síně...</div>';
     btn.disabled = true;
+    document.getElementById('hj-debug-btn').disabled = true;
+    document.getElementById('hj-debug-btn').disabled = true;
 
     try {
       const res = await fetch(`${API}/organizace/lovkod/jednaci-sin?idOrganizace=${courtId}`);
@@ -475,6 +477,7 @@
 
       statusEl.innerHTML = `<div class="app-status-ready">✓ Načteno ${currentSins.length} jednacích síní</div>`;
       setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
+    document.getElementById('hj-debug-btn').disabled = false;
     } catch(e) {
       currentSins = [];
       statusEl.innerHTML = '<div class="app-status-error">Chyba načítání síní</div>';
@@ -663,6 +666,7 @@
     } finally {
       btn.disabled = false;
       btn.textContent = 'Vyhledat →';
+      document.getElementById('hj-debug-btn').disabled = false;
     }
   };
 
